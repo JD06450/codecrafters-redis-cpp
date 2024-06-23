@@ -64,7 +64,8 @@ int main(int argc, char **argv) {
 
 	char *pong = "+PONG\r\n";
 
-	send(connection_fd, pong, sizeof(pong), 0);
+	// using sizeof - 1 to eliminate the null terminator as the Redis Protocol uses crlf for termination
+	send(connection_fd, pong, sizeof(pong) - 1, 0);
 	close(connection_fd);
 
 	close(server_fd);
