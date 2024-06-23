@@ -8,6 +8,12 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include <array>
+#include <algorithm>
+
+// TODO: maybe see if there is a better way of choosing the buffer size
+#define PACKET_BUFFER_LEN 4096
+
 int main(int argc, char **argv) {
 	// Flush after every std::cout / std::cerr
 	std::cout << std::unitbuf;
@@ -50,9 +56,8 @@ int main(int argc, char **argv) {
 	
 	struct sockaddr_in client_addr;
 	int client_addr_len = sizeof(client_addr);
-	
-	std::cout << "Waiting for a client to connect...\n";
-	
+
+	std::cout << "Waiting for a client to connect...\n";	
 	int connection_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
 
 	if (connection_fd < 0)
@@ -62,12 +67,28 @@ int main(int argc, char **argv) {
 	}
 	std::cout << "Client connected\n";
 
-	char *pong = "+PONG\r\n";
+	std::array<char, PACKET_BUFFER_LEN> in_buffer;
+	size_t packet_size = 0;
 
-	// using sizeof - 1 to eliminate the null terminator as the Redis Protocol uses crlf for termination
-	send(connection_fd, pong, sizeof(pong) - 1, 0);
+	while ((packet_size = read(connection_fd, in_buffer.data(), in_buffer.max_size())) > 0)
+	{
+		char *pong = "+PONG\r\n";
+
+		// using sizeof - 1 to eliminate the null terminator as the Redis Protocol uses crlf for termination
+		send(connection_fd, pong, sizeof(pong) - 1, 0);
+	}
+
+	if (packet_size == 0)
+	{
+		std::cout << "Client disconnected\n";
+	}
+	else if (packet_size == -1)
+	{
+		std::cerr << "Failed to fetch data from the client\n";
+		return 1;
+	}
+
 	close(connection_fd);
-
 	close(server_fd);
 
 	return 0;
