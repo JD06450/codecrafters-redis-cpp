@@ -1,0 +1,15 @@
+#pragma once
+#ifndef _BUILD_YOUR_OWN_REDIS_COMMANDS_
+#define _BUILD_YOUR_OWN_REDIS_COMMANDS_
+
+#include <nlohmann/json.hpp>
+
+#include "Parser.hpp"
+
+nlohmann::json run_command(const nlohmann::json& command);
+
+nlohmann::json PING(const nlohmann::json& args);
+
+nlohmann::json ECHO(const nlohmann::json& args);
+
+#endif

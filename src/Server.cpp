@@ -1,8 +1,5 @@
 #include "Server.hpp"
 
-// TODO: maybe see if there is a better way of choosing the buffer size
-#define PACKET_BUFFER_LEN 4096
-
 std::optional<client_connection> accept_connection(int server_fd)
 {
 	client_connection client;
@@ -47,35 +44,6 @@ void close_dead_sockets(std::list<client_connection> &socket_list, const std::ve
 	}
 }
 
-// Returns true to keep the connection open. Otherwise returns false to indicate that
-// the socket should be closed.
-bool handle_client_read(const client_connection& client)
-{
-	std::array<char, PACKET_BUFFER_LEN> in_buffer;
-	ssize_t bytes_read;
-	in_buffer.fill('\00');
-
-	bytes_read = read(client.fd, in_buffer.data(), in_buffer.max_size());
-	if (bytes_read == 0)
-	{
-		// EOF
-		char client_address[INET_ADDRSTRLEN];
-		inet_ntop(AF_INET, &(client.addr.sin_addr), client_address, INET_ADDRSTRLEN);
-		std::cout << "Client at \"" << client_address << "\" on port " << client.addr.sin_port << " disconnected\n";
-		return false;
-	}
-	if (bytes_read == -1)
-	{
-		std::cout << "Error reading from client\n";
-		return true;
-	}
-
-	char *pong = "+PONG\r\n";
-	// using sizeof - 1 to eliminate the null terminator as the Redis Protocol uses crlf for termination
-	send(client.fd, pong, sizeof(pong) - 1, 0);
-	return true;
-}
-
 int main(int argc, char **argv) {
 	// Flush after every std::cout / std::cerr
 	std::cout << std::unitbuf;
@@ -115,6 +83,7 @@ int main(int argc, char **argv) {
 	}
 	
 	client_connection initial_client;
+	
 	// Listening for our first client to start
 	{
 		socklen_t initial_client_addr_len = sizeof(initial_client.addr);
