@@ -60,6 +60,13 @@ std::vector<uint8_t> serialize_string(const json::json &obj)
 	return output;
 }
 
+std::vector<uint8_t> serialize_null(const json::json &obj)
+{
+	std::string raw_null = { (uint8_t) data_type_ids::BLOB };
+	raw_null += "-1\r\n";
+	return std::vector<uint8_t>(raw_null.cbegin(), raw_null.cend());
+}
+
 std::vector<uint8_t> from_json(const json::json &obj)
 {
 	std::vector<uint8_t> serialized_output;
@@ -77,6 +84,8 @@ std::vector<uint8_t> from_json(const json::json &obj)
 			out = serialize_blob(current_obj);
 		else if (current_obj.is_string())
 			out = serialize_string(current_obj);
+		else if (current_obj.is_null())
+			out = serialize_null(current_obj);
 
 		serialized_output.insert(serialized_output.cend(), out.cbegin(), out.cend());
 	}

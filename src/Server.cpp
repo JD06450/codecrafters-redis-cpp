@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
 
 		struct timeval timeout;
 		timeout.tv_sec = 0;
-		timeout.tv_usec = 0;
+		timeout.tv_usec = 1;
 
 		// Check the descriptors for activity
 		int a = select(max_fd + 1, &connection_set, NULL, NULL, &timeout);

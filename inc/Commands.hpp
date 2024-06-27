@@ -5,11 +5,16 @@
 #include <nlohmann/json.hpp>
 
 #include "Parser.hpp"
+#include "Store.hpp"
 
 nlohmann::json run_command(const nlohmann::json& command);
 
 nlohmann::json PING(const nlohmann::json& args);
 
 nlohmann::json ECHO(const nlohmann::json& args);
+
+nlohmann::json GET(const nlohmann::json &args);
+
+nlohmann::json SET(const nlohmann::json &args);
 
 #endif

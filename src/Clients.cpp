@@ -53,14 +53,7 @@ bool handle_client_read(const client_connection& client)
 		full_command.insert(full_command.end(), in_buffer.data(), in_buffer.data() + bytes_read);
 	}
 
-	json::json cmd = parse_redis_command(full_command);
-	std::cout << "Command:  " << json::to_string(cmd) << "\n\n";
-	json::json response = run_command(cmd);
-	std::cout << "Response: " << json::to_string(response) << "\n\n";
-
-	std::vector<uint8_t> serial_response = from_json(response);
-
-	for (char i : serial_response)
+	for (char i : full_command)
 	{
 		if (i == 0) break;
 		switch (i) {
@@ -77,6 +70,15 @@ bool handle_client_read(const client_connection& client)
 			std::cout << i;
 		}
 	}
+
+	json::json cmd = parse_redis_command(full_command);
+	std::cout << "Command:  " << json::to_string(cmd) << "\n\n";
+	json::json response = run_command(cmd);
+	std::cout << "Response: " << json::to_string(response) << "\n\n";
+
+	std::vector<uint8_t> serial_response = from_json(response);
+
+	
 
 	send(client.fd, (const char *) serial_response.data(), serial_response.size(), 0);
 	return true;
