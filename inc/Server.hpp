@@ -17,6 +17,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include <boost/program_options.hpp>
+
 #include "Clients.hpp"
 
 /**

@@ -2,6 +2,7 @@
   "dependencies": [
     "asio",
     "pthreads",
-    "nlohmann-json"
+    "nlohmann-json",
+    "boost-program-options"
   ]
 }
