@@ -31,28 +31,12 @@ nlohmann::json parse_redis_string(const std::vector<uint8_t>& str, size_t &str_l
 
 bool blob_is_string_like(const nlohmann::json& blob);
 
+bool blob_is_numeric(const nlohmann::json& blob);
+
+
+
 inline nlohmann::json parse_redis_item(const std::vector<uint8_t> &raw_item, size_t &item_length)
 {
-	// std::cout << "Item:\n";
-	// for (char i : raw_item)
-	// {
-	// 	if (i == 0) break;
-	// 	switch (i) {
-	// 	case '\\':
-	// 		std::cout << "\\\\";
-	// 		break;
-	// 	case '\r':
-	// 		std::cout << "\\r";
-	// 		break;
-	// 	case '\n':
-	// 		std::cout << "\\n";
-	// 		break;
-	// 	default:
-	// 		std::cout << i;
-	// 	}
-	// }
-	// std::cout << "\n";
-
 	switch (raw_item[0])
 	{
 	case (uint8_t) data_type_ids::ARRAY:

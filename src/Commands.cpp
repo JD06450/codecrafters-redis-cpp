@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <chrono>
 
 // #include "Store.hpp"
 
@@ -92,6 +93,20 @@ json::json GET(const json::json &args)
 	else return json::json();
 }
 
+bool parse_expiry_time(RedisSetOptions &options, const json::json &args, json::detail::iter_impl<const nlohmann::json> &it, const std::string &arg)
+{
+	options.data.expires = true;
+	if ((it + 1 == args.end()) || !blob_is_numeric( *(++it) ))
+	{
+		std::cerr << "Flag " << arg << " requires a numerical argument.\n";
+		return false;
+	}
+	std::vector<uint8_t> ttl_vec = it->get_binary();
+	ssize_t ttl = std::stol(std::string(ttl_vec.cbegin(), ttl_vec.cend()), nullptr, 10);
+	options.data.expiry_time = std::chrono::system_clock::now() + (arg == "PX" ? std::chrono::milliseconds(ttl) : std::chrono::seconds(ttl));
+	return true;
+}
+
 json::json SET(const json::json &args)
 {
 	if (!args.is_array())
@@ -106,6 +121,16 @@ json::json SET(const json::json &args)
 		std::vector<uint8_t> arg = args.at(0).get_binary();
 		options.key = std::string(arg.cbegin(), arg.cend());
 		options.data.data = args.at(1).get_binary();
+	}
+
+	for (auto it = args.begin() + 2; it != args.end(); ++it)
+	{
+		std::vector<uint8_t> arg_vec = it->get_binary();
+		std::string arg(arg_vec.cbegin(), arg_vec.cend());
+		std::transform(arg.begin(), arg.end(), arg.begin(), ::toupper);
+		bool status;
+		if (arg == "PX" || arg == "EX") status = parse_expiry_time(options, args, it, arg);
+		if (!status) return json::json();
 	}
 
 	bool result = RedisStore::get_store()->set_value(options);

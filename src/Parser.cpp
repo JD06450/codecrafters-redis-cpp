@@ -78,11 +78,23 @@ json::json parse_redis_string(const std::vector<uint8_t>& raw_str, size_t &str_l
 	return parsed_string;
 }
 
-bool blob_is_string_like(const nlohmann::json &blob_json)
+bool blob_is_string_like(const json::json &blob_json)
 {
 	std::vector<uint8_t> blob = blob_json.get_binary();
-	std::vector<uint8_t>::const_iterator it = std::find_if_not(blob.cbegin(), blob.cend(), [](uint8_t c) {
+	std::vector<uint8_t>::const_iterator it = std::find_if_not(blob.cbegin(), blob.cend(), [](uint8_t c)
+	{
 		return std::isalnum(c);
+	});
+
+	return it == blob.cend();
+}
+
+bool blob_is_numeric(const json::json &blob_json)
+{
+	std::vector<uint8_t> blob = blob_json.get_binary();
+	std::vector<uint8_t>::const_iterator it = std::find_if_not(blob.cbegin(), blob.cend(), [](uint8_t c)
+	{
+		return std::isdigit(c);
 	});
 
 	return it == blob.cend();

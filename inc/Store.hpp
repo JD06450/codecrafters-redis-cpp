@@ -44,6 +44,8 @@ public:
 	void operator=(const RedisStore &) = delete;
 	~RedisStore();
 
+	void check_expiry(const std::string &key);
+
 	bool set_value(const RedisSetOptions &options);
 
 	std::optional<RedisValue> get_value(const std::string &key);

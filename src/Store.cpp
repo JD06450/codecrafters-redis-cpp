@@ -11,9 +11,23 @@ std::shared_ptr<RedisStore> RedisStore::get_store()
 RedisStore::~RedisStore() {}
 
 
+void RedisStore::check_expiry(const std::string &key)
+{
+	std::lock_guard<std::mutex> g_data_mutex(this->data_mutex);
+	auto it = this->data.find(key);
+	if (it == this->data.end()) return;
+	RedisValue data = it->second;
+	if (data.expires && std::chrono::system_clock::now() >= data.expiry_time)
+	{
+		this->data.erase(it);
+	}
+}
+
 
 bool RedisStore::set_value(const RedisSetOptions &options)
 {
+	this->check_expiry(options.key);
+
 	std::lock_guard<std::mutex> g_data_mutex(this->data_mutex);
 	auto it = this->data.find(options.key);
 	if (options.assign_only && it == this->data.end()) return false;
@@ -24,6 +38,8 @@ bool RedisStore::set_value(const RedisSetOptions &options)
 
 std::optional<RedisValue> RedisStore::get_value(const std::string &key)
 {
+	this->check_expiry(key);
+	
 	auto it = this->data.find(key);
 	if (it == this->data.end()) return nullopt;
 	return it->second;
