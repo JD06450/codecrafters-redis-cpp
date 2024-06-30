@@ -17,4 +17,6 @@ nlohmann::json GET(const nlohmann::json &args);
 
 nlohmann::json SET(const nlohmann::json &args);
 
+nlohmann::json INFO(const nlohmann::json &args);
+
 #endif

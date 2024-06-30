@@ -18,7 +18,8 @@ static const std::map<std::string, std::function<json::json(const json::json&)>>
 	{"PING", PING},
 	{"ECHO", ECHO},
 	{"GET", GET},
-	{"SET", SET}
+	{"SET", SET},
+	{"INFO", INFO}
 };
 
 json::json run_command(const json::json& command)
@@ -136,4 +137,43 @@ json::json SET(const json::json &args)
 	bool result = RedisStore::get_store()->set_value(options);
 	if (result) return json::json("OK");
 	else return json::json();
+}
+
+json::json replication_info()
+{
+	return json::json(
+		"# Replication\r\n"
+		"role:master\r\n"
+	);
+}
+
+inline void append_blob(json::json &json_blob, const std::string &string_to_append)
+{
+	std::vector<uint8_t> a = json_blob.get_binary();
+	std::vector<uint8_t> vec_to_append(string_to_append.cbegin(), string_to_append.cend());
+	a.insert(a.end(), vec_to_append.cbegin(), vec_to_append.cend());
+	json_blob = json::json::binary(a);
+}
+
+json::json INFO(const json::json &args)
+{
+	json::json return_string = json::json::binary({});
+
+	if (args.size() == 0)
+	{
+		// Concatenate all sections
+		append_blob(return_string, replication_info());
+
+		return return_string;
+	}
+
+	for (auto it = args.begin(); it != args.end(); ++it)
+	{
+		std::vector<uint8_t> arg_vec = it->get_binary();
+		std::string arg(arg_vec.cbegin(), arg_vec.cend());
+		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
+		if (arg == "replication") append_blob(return_string, replication_info());
+	}
+
+	return return_string;
 }

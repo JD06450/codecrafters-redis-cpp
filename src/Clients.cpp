@@ -78,8 +78,6 @@ bool handle_client_read(const client_connection& client)
 
 	std::vector<uint8_t> serial_response = from_json(response);
 
-	
-
 	send(client.fd, (const char *) serial_response.data(), serial_response.size(), 0);
 	return true;
 }
