@@ -147,7 +147,9 @@ json::json replication_info()
 
 	std::ostringstream out_stream;
 	out_stream << "# Replication\r\n"
-		<< "role:" << (state->replica_mode ? "slave" : "master") << "\r\n";
+		<< "role:" << (state->replica_mode ? "slave" : "master") << "\r\n"
+		<< "master_replid:" << (state->replication_id) << "\r\n"
+		<< "master_repl_offset:" << (state->replication_offset) << "\r\n";
 	return json::json(out_stream.str());
 }
 
