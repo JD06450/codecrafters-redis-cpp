@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <optional>
 #include <chrono>
@@ -141,10 +143,12 @@ json::json SET(const json::json &args)
 
 json::json replication_info()
 {
-	return json::json(
-		"# Replication\r\n"
-		"role:master\r\n"
-	);
+	std::shared_ptr<ServerState> state = ServerState::get_state();
+
+	std::ostringstream out_stream;
+	out_stream << "# Replication\r\n"
+		<< "role:" << (state->replica_mode ? "slave" : "master") << "\r\n";
+	return json::json(out_stream.str());
 }
 
 inline void append_blob(json::json &json_blob, const std::string &string_to_append)

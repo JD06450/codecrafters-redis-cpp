@@ -5,6 +5,7 @@
 #include <nlohmann/json.hpp>
 
 #include "Parser.hpp"
+#include "ServerState.hpp"
 #include "Store.hpp"
 
 nlohmann::json run_command(const nlohmann::json& command);

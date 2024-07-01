@@ -3,6 +3,7 @@
     "asio",
     "pthreads",
     "nlohmann-json",
-    "boost-program-options"
+    "boost-program-options",
+    "boost-lexical-cast"
   ]
 }

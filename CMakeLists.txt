@@ -17,7 +17,7 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(nlohman-json_IMPLICIT_CONVERSIONS OFF)
 
-find_package(Boost 1.84.0 COMPONENTS program_options)
+find_package(Boost 1.84.0 REQUIRED COMPONENTS program_options)
 find_package(Threads REQUIRED)
 find_package(asio CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)

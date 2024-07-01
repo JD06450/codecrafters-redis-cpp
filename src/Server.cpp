@@ -1,6 +1,9 @@
 #include "Server.hpp"
 
 namespace po = boost::program_options;
+using boost::lexical_cast;
+
+static const std::regex ipv4_regex("^(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})\\.(25[0-5]|2[0-4][0-9]|1?[0-9]{1,2})$");
 
 std::optional<client_connection> accept_connection(int server_fd)
 {
@@ -52,17 +55,34 @@ int main(int argc, char **argv) {
 	std::cerr << std::unitbuf;
 	
 	po::options_description desc("Allowed Options");
-	desc.add_options()("port", po::value<uint16_t>(), "The port to bind the server to");
+	desc.add_options()
+		("port", po::value<uint16_t>(), "The port to bind the server to")
+		("replicaof", po::value<std::string>(), "Start the server in replica mode and replicate changes from a redis server at this address");
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 	po::notify(vm);
 
-	uint16_t port = 6379;
+	std::shared_ptr<ServerState> state = ServerState::get_state();
 
 	if (vm.count("port"))
 	{
-		port = vm.at("port").as<uint16_t>();
+		state->port = vm.at("port").as<uint16_t>();
+	}
+
+	if (vm.count("replicaof"))
+	{
+		std::string value = vm.at("replicaof").as<std::string>();
+		size_t idx = value.find(' ');
+		std::string ip = value.substr(0, idx);
+		std::string port_str = value.substr(idx + 1);
+
+		if (!std::regex_match(ip, ipv4_regex) || inet_pton(AF_INET, ip.c_str(), &state->replica_addr.sin_addr) < 1)
+		{
+			throw std::range_error("Invalid IPv4 address in --replicaof");
+		}
+		state->replica_addr.sin_port = lexical_cast<uint16_t>(port_str);
+		state->replica_mode = true;
 	}
 
 	// Create server socket
@@ -84,10 +104,10 @@ int main(int argc, char **argv) {
 	struct sockaddr_in server_addr;
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = htons(port);
+	server_addr.sin_port = htons(state->port);
 	
 	if (bind(server_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) != 0) {
-		std::cerr << "Failed to bind to port "<< port <<"\n";
+		std::cerr << "Failed to bind to port "<< state->port <<"\n";
 		return 1;
 	}
 	
