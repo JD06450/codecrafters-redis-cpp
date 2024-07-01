@@ -77,10 +77,12 @@ int main(int argc, char **argv) {
 		std::string ip = value.substr(0, idx);
 		std::string port_str = value.substr(idx + 1);
 
+		if (ip == "localhost") ip = "127.0.0.1";
 		if (!std::regex_match(ip, ipv4_regex) || inet_pton(AF_INET, ip.c_str(), &state->replica_addr.sin_addr) < 1)
 		{
 			throw std::range_error("Invalid IPv4 address in --replicaof");
 		}
+		
 		state->replica_addr.sin_port = lexical_cast<uint16_t>(port_str);
 		state->replica_mode = true;
 	}
