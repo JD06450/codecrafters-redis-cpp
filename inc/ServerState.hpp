@@ -29,6 +29,7 @@ public:
 	
 	uint16_t port;
 	bool replica_mode;
+	int master_fd;
 	struct sockaddr_in replica_addr;
 	std::string replication_id;
 	std::string replication_id_2;

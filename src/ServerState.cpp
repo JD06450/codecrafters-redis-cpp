@@ -21,6 +21,7 @@ ServerState::ServerState()
 
 	this->rng = std::mt19937(this->rd());
 
+	this->master_fd = -1;
 	this->replication_offset = 0;
 	this->replication_id_2 = "0000000000000000000000000000000000000000";
 

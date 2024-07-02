@@ -56,4 +56,9 @@ inline nlohmann::json parse_redis_command(const std::vector<uint8_t> &command)
 	return parse_redis_item(command, _offset);
 }
 
+inline std::vector<uint8_t> to_blob(const std::string &str)
+{
+	return std::vector<uint8_t>(str.cbegin(), str.cend());
+}
+
 #endif

@@ -83,21 +83,29 @@ int main(int argc, char **argv) {
 			throw std::range_error("Invalid IPv4 address in --replicaof");
 		}
 		
-		state->replica_addr.sin_port = lexical_cast<uint16_t>(port_str);
+		state->replica_addr.sin_port = htons(lexical_cast<uint16_t>(port_str));
 		state->replica_mode = true;
+	}
+
+	if (state->replica_mode == true)
+	{
+		state->master_fd = init_replica_socket();
+		replica_handshake(state->master_fd);
 	}
 
 	// Create server socket
 	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd < 0) {
-	 std::cerr << "Failed to create server socket\n";
-	 return 1;
+	if (server_fd < 0)
+	{
+		std::cerr << "Failed to create server socket\n";
+		return 1;
 	}
 	
 	// Since the tester restarts your program quite often, setting SO_REUSEADDR
 	// ensures that we don't run into 'Address already in use' errors
 	int reuse = 1;
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
+	{
 		std::cerr << "setsockopt failed\n";
 		return 1;
 	}

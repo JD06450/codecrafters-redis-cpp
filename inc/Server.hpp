@@ -24,6 +24,7 @@
 
 #include "Clients.hpp"
 #include "ServerState.hpp"
+#include "Replica.hpp"
 
 /**
  * @brief Accepts any incoming TCP connections for a given socket.

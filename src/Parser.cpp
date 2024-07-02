@@ -53,7 +53,9 @@ json::json parse_redis_blob(const std::vector<uint8_t>& raw_blob, size_t &blob_l
 
 	blob_length = raw_index + blob_data_length + 2;
 
-	return json::json::binary(std::vector<uint8_t>(raw_blob.begin() + raw_index, raw_blob.begin() + blob_length - 2));
+	ssize_t diff = std::distance(raw_blob.begin() + blob_length - 2, raw_blob.end());
+
+	return json::json::binary(std::vector<uint8_t>(raw_blob.begin() + raw_index, std::min(raw_blob.begin() + blob_length - 2, raw_blob.end() - 2)));
 }
 
 json::json parse_redis_string(const std::vector<uint8_t>& raw_str, size_t &str_length)
