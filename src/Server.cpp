@@ -11,7 +11,7 @@ std::optional<client_connection> accept_connection(int server_fd)
 	socklen_t addr_size = sizeof(client.addr);
 	client.fd = accept(server_fd, (sockaddr *)&client.addr, &addr_size);
 	// int one = 1;
-	
+
 	if (client.fd < 0)
 	{
 		std::cerr << "Failed to get client socket\n";
@@ -97,7 +97,14 @@ int main(int argc, char **argv) {
 	if (state->replica_mode == true)
 	{
 		state->master_fd = init_replica_socket();
-		replica_handshake(state->master_fd);
+		try
+		{
+			replica_handshake(state->master_fd);
+		}
+		catch(const std::runtime_error &e)
+		{
+			std::cerr << "Replica handshake failed. Reason: " << e.what() << '\n';
+		}
 	}
 
 	// Create server socket
