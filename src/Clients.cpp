@@ -71,13 +71,16 @@ bool handle_client_read(const client_connection& client)
 		}
 	}
 
-	json::json cmd = parse_redis_command(full_command);
-	std::cout << "Command:  " << json::to_string(cmd) << "\n\n";
-	json::json response = run_command(cmd);
-	std::cout << "Response: " << json::to_string(response) << "\n\n";
+	json::json cmds = parse_redis_commands(full_command);
+	for (auto cmd = cmds.begin(); cmd != cmds.end(); ++cmd)
+	{
+		std::cout << "Command:  " << json::to_string(cmd.value()) << "\n\n";
+		json::json response = run_command(cmd.value());
+		std::cout << "Response: " << json::to_string(response) << "\n\n";
+		std::vector<uint8_t> serial_response = from_json(response);
 
-	std::vector<uint8_t> serial_response = from_json(response);
+		send(client.fd, (const char *) serial_response.data(), serial_response.size(), 0);
+	}
 
-	send(client.fd, (const char *) serial_response.data(), serial_response.size(), 0);
 	return true;
 }

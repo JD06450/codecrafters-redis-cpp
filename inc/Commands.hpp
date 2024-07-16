@@ -20,4 +20,6 @@ nlohmann::json SET(const nlohmann::json &args);
 
 nlohmann::json INFO(const nlohmann::json &args);
 
+nlohmann::json REPLCONF(const nlohmann::json &args);
+
 #endif

@@ -45,4 +45,21 @@ void replica_handshake(int socket)
 
 	send(socket, (const char *) serial_command.data(), serial_command.size(), 0);
 
+	command = json::json::array({
+		json::json::binary(to_blob("REPLCONF")),
+		json::json::binary(to_blob("listening-port")),
+		json::json::binary(to_blob(std::to_string(ServerState::get_state()->port)))
+	});
+	serial_command = from_json(command);
+
+	send(socket, (const char *) serial_command.data(), serial_command.size(), 0);
+	
+	command = json::json::array({
+		json::json::binary(to_blob("REPLCONF")),
+		json::json::binary(to_blob("capa")),
+		json::json::binary(to_blob("psync2"))
+	});
+	serial_command = from_json(command);
+
+	send(socket, (const char *) serial_command.data(), serial_command.size(), 0);
 }

@@ -101,3 +101,18 @@ bool blob_is_numeric(const json::json &blob_json)
 
 	return it == blob.cend();
 }
+
+json::json parse_redis_commands(const std::vector<uint8_t> &commands)
+{
+	json::json commands_array = json::json::array();
+	size_t offset = 0;
+
+	while (offset < commands.size())
+	{
+		size_t command_length = 0;
+		std::vector<uint8_t> command(commands.begin() + offset, commands.end());
+		commands_array.push_back(parse_redis_item(command, command_length));
+		offset += command_length;
+	}
+	return commands_array;
+}

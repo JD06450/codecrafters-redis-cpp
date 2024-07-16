@@ -21,7 +21,8 @@ static const std::map<std::string, std::function<json::json(const json::json&)>>
 	{"ECHO", ECHO},
 	{"GET", GET},
 	{"SET", SET},
-	{"INFO", INFO}
+	{"INFO", INFO},
+	{"REPLCONF", REPLCONF}
 };
 
 json::json run_command(const json::json& command)
@@ -182,4 +183,9 @@ json::json INFO(const json::json &args)
 	}
 
 	return return_string;
+}
+
+json::json REPLCONF(const json::json &args)
+{
+	return json::json("OK");
 }

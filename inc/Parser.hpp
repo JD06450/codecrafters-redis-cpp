@@ -33,6 +33,15 @@ bool blob_is_string_like(const nlohmann::json& blob);
 
 bool blob_is_numeric(const nlohmann::json& blob);
 
+/**
+ * @brief Parses raw data from a TCP socket into a JSON object representing one or multiple Redis commands.
+ * This function can be useful if the TCP socket sends multiple commands at once and as such, multiple commands
+ * will have been read from the socket at once and cannot be easily separated without first parsing the data.
+ * @param commands Raw command data streamed in from a TCP socket
+ * @returns A JSON array of the parsed command data, where each array element is a specific command.
+ */
+nlohmann::json parse_redis_commands(const std::vector<uint8_t> &commands);
+
 
 
 inline nlohmann::json parse_redis_item(const std::vector<uint8_t> &raw_item, size_t &item_length)
