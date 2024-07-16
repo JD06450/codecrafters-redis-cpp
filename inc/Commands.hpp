@@ -22,4 +22,6 @@ nlohmann::json INFO(const nlohmann::json &args);
 
 nlohmann::json REPLCONF(const nlohmann::json &args);
 
+nlohmann::json PSYNC2(const nlohmann::json &args);
+
 #endif

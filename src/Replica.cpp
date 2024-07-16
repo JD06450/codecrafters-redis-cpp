@@ -81,6 +81,8 @@ void replica_handshake(int socket)
 	command = json::json::array({
 		json::json::binary(to_blob("REPLCONF")),
 		json::json::binary(to_blob("capa")),
+		json::json::binary(to_blob("eof")),
+		json::json::binary(to_blob("capa")),
 		json::json::binary(to_blob("psync2"))
 	});
 	serial_command = from_json(command);
@@ -92,4 +94,35 @@ void replica_handshake(int socket)
 	{
 		throw std::runtime_error("Handshake failed stage 3");
 	}
+
+	command = json::json::array({
+		json::json::binary(to_blob("PSYNC2")),
+		json::json::binary(to_blob("?")),
+		json::json::binary(to_blob("-1"))
+	});
+	serial_command = from_json(command);
+
+	send(socket, (const char *) serial_command.data(), serial_command.size(), 0);
+	while (!socket_ready(socket, 3000)) {continue;}
+	response = parse_redis_item(get_response(master_conn));
+	std::vector<std::string> tokens;
+	{
+		std::istringstream i(response.get<std::string>());
+		std::copy(
+			std::istream_iterator<std::string>(i),
+			std::istream_iterator<std::string>(),
+			std::back_inserter(tokens)
+		);
+	}
+
+	if (tokens.size() != 3)
+	{
+		std::ostringstream what;
+		what << "Expected 3 tokens, got " << tokens.size();
+		throw std::runtime_error(what.str());
+	}
+
+	std::shared_ptr<ServerState> state = ServerState::get_state();
+	state->replication_id = tokens[1];
+	state->replication_offset = std::stoull(tokens[2]);
 }

@@ -22,7 +22,8 @@ static const std::map<std::string, std::function<json::json(const json::json&)>>
 	{"GET", GET},
 	{"SET", SET},
 	{"INFO", INFO},
-	{"REPLCONF", REPLCONF}
+	{"REPLCONF", REPLCONF},
+	{"PSYNC2", PSYNC2}
 };
 
 json::json run_command(const json::json& command)
@@ -188,4 +189,11 @@ json::json INFO(const json::json &args)
 json::json REPLCONF(const json::json &args)
 {
 	return json::json("OK");
+}
+
+json::json PSYNC2(const json::json &args)
+{
+	std::shared_ptr<ServerState> state = ServerState::get_state();
+	std::ostringstream response;
+	response << "FULLRESYNC " << state->replication_id << " " << state->replication_offset;
 }
