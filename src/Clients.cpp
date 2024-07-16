@@ -38,6 +38,7 @@ bool handle_client_read(const client_connection& client)
 	{
 		if (!strncmp(e.what(), "Disconnect", sizeof("Disconnect"))) return false;
 		if (!strncmp(e.what(), "Socket Error", sizeof("Socket Error"))) return true;
+		return false;
 	}
 
 	for (char i : full_command)
