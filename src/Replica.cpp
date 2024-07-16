@@ -96,7 +96,7 @@ void replica_handshake(int socket)
 	}
 
 	command = json::json::array({
-		json::json::binary(to_blob("PSYNC2")),
+		json::json::binary(to_blob("PSYNC")),
 		json::json::binary(to_blob("?")),
 		json::json::binary(to_blob("-1"))
 	});
