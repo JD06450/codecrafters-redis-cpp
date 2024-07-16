@@ -3,6 +3,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
@@ -23,11 +24,16 @@ int init_replica_socket()
 		throw std::runtime_error("Failed to create socket to master db");
 	}
 
-	int reuse = 1;
-	if (setsockopt(master_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
+	int flags = 1;
+	if (setsockopt(master_fd, SOL_SOCKET, SO_REUSEADDR, &flags, sizeof(flags)) < 0)
 	{
 		throw std::runtime_error("Failed to set socket option");
 	}
+
+	// if (setsockopt(master_fd, SOL_TCP, TCP_NODELAY, &flags, sizeof(flags)) < 0)
+	// {
+	// 	throw std::runtime_error("Failed to set socket option");
+	// }
 
 	if (connect(master_fd, (sockaddr *) &state->replica_addr, sizeof(state->replica_addr)) < 0)
 	{
@@ -40,10 +46,22 @@ int init_replica_socket()
 void replica_handshake(int socket)
 {
 	json::json command = json::json::array();
+	json::json response;
 	command.push_back(json::json::binary(to_blob("PING")));
 	std::vector<uint8_t> serial_command = from_json(command);
 
+	client_connection master_conn;
+	master_conn.fd = socket;
+	master_conn.addr = ServerState::get_state()->replica_addr;
+
 	send(socket, (const char *) serial_command.data(), serial_command.size(), 0);
+	// TODO: This is bad. Don't do this
+	while (!socket_ready(socket, 3000)) {continue;}
+	response = parse_redis_item(get_response(master_conn));
+	if (response != json::json("PONG"))
+	{
+		throw std::runtime_error("Handshake failed stage 1");
+	}
 
 	command = json::json::array({
 		json::json::binary(to_blob("REPLCONF")),
@@ -53,6 +71,12 @@ void replica_handshake(int socket)
 	serial_command = from_json(command);
 
 	send(socket, (const char *) serial_command.data(), serial_command.size(), 0);
+	while (!socket_ready(socket, 3000)) {continue;}
+	response = parse_redis_item(get_response(master_conn));
+	if (response != json::json("OK"))
+	{
+		throw std::runtime_error("Handshake failed stage 2");
+	}
 	
 	command = json::json::array({
 		json::json::binary(to_blob("REPLCONF")),
@@ -62,4 +86,10 @@ void replica_handshake(int socket)
 	serial_command = from_json(command);
 
 	send(socket, (const char *) serial_command.data(), serial_command.size(), 0);
+	while (!socket_ready(socket, 3000)) {continue;}
+	response = parse_redis_item(get_response(master_conn));
+	if (response != json::json("OK"))
+	{
+		throw std::runtime_error("Handshake failed stage 3");
+	}
 }

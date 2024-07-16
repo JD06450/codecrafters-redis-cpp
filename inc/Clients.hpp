@@ -20,11 +20,17 @@ struct client_connection
 	sockaddr_in addr;
 };
 
+bool socket_ready(int fd);
+
+bool socket_ready(int fd, int timeout);
+
 /**
  * @brief 
  * @param client The client to handle
  * @return True if the socket should be kept alive, False if the socket should be closed
  */
 bool handle_client_read(const client_connection &client);
+
+std::vector<uint8_t> get_response(const client_connection &conn);
 
 #endif

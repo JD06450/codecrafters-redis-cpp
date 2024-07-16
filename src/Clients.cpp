@@ -7,14 +7,16 @@ namespace json = nlohmann;
 // TODO: maybe see if there is a better way of choosing the buffer size
 #define PACKET_BUFFER_LEN 4096
 
-bool socket_ready(int fd)
+bool socket_ready(int fd, int timeout)
 {
 	pollfd poll_settings;
 	poll_settings.fd = fd;
 	poll_settings.events = POLLIN;
-	poll(&poll_settings, 1, 1);
+	poll(&poll_settings, 1, timeout);
 	return poll_settings.revents & POLLIN;
 }
+
+inline bool socket_ready(int fd) {return socket_ready(fd, 1);}
 
 void print_blob(const std::vector<uint8_t> &blob)
 {
@@ -28,29 +30,14 @@ void print_blob(const std::vector<uint8_t> &blob)
 bool handle_client_read(const client_connection& client)
 {
 	std::vector<uint8_t> full_command;
-	std::array<char, PACKET_BUFFER_LEN> in_buffer;
-	ssize_t bytes_read;
-	in_buffer.fill('\00');
-
-	while (socket_ready(client.fd))
+	try
 	{
-		bytes_read = read(client.fd, in_buffer.data(), in_buffer.max_size());
-		if (bytes_read == 0)
-		{
-			// EOF
-			char client_address[INET_ADDRSTRLEN];
-			inet_ntop(AF_INET, &(client.addr.sin_addr), client_address, INET_ADDRSTRLEN);
-			std::cout << "Client at \"" << client_address << "\" on port " << client.addr.sin_port << " disconnected\n";
-			return false;
-		}
-		if (bytes_read == -1)
-		{
-			std::cout << "Error reading from client\n";
-			// TODO: maybe send error message back to the client if possible
-			return true;
-		}
-
-		full_command.insert(full_command.end(), in_buffer.data(), in_buffer.data() + bytes_read);
+		full_command = get_response(client);
+	}
+	catch(const std::runtime_error& e)
+	{
+		if (!strncmp(e.what(), "Disconnect", sizeof("Disconnect"))) return false;
+		if (!strncmp(e.what(), "Socket Error", sizeof("Socket Error"))) return true;
 	}
 
 	for (char i : full_command)
@@ -83,4 +70,35 @@ bool handle_client_read(const client_connection& client)
 	}
 
 	return true;
+}
+
+std::vector<uint8_t> get_response(const client_connection &conn)
+{
+	std::vector<uint8_t> full_response;
+	ssize_t bytes_read;
+	std::array<char, PACKET_BUFFER_LEN> in_buffer;
+	in_buffer.fill('\00');
+
+	while (socket_ready(conn.fd))
+	{
+		bytes_read = read(conn.fd, in_buffer.data(), in_buffer.max_size());
+		if (bytes_read == 0)
+		{
+			// EOF
+			char client_address[INET_ADDRSTRLEN];
+			inet_ntop(AF_INET, &(conn.addr.sin_addr), client_address, INET_ADDRSTRLEN);
+			std::cout << "Client at \"" << client_address << "\" on port " << conn.addr.sin_port << " disconnected\n";
+			throw std::runtime_error("Disconnect");
+		}
+		if (bytes_read == -1)
+		{
+			std::cout << "Error reading from client\n";
+			// TODO: maybe send error message back to the client if possible
+			throw std::runtime_error("Socket Error");
+		}
+
+		full_response.insert(full_response.end(), in_buffer.data(), in_buffer.data() + bytes_read);
+	}
+
+	return full_response;
 }

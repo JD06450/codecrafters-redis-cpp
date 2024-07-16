@@ -42,8 +42,6 @@ bool blob_is_numeric(const nlohmann::json& blob);
  */
 nlohmann::json parse_redis_commands(const std::vector<uint8_t> &commands);
 
-
-
 inline nlohmann::json parse_redis_item(const std::vector<uint8_t> &raw_item, size_t &item_length)
 {
 	switch (raw_item[0])
@@ -57,6 +55,12 @@ inline nlohmann::json parse_redis_item(const std::vector<uint8_t> &raw_item, siz
 	default:
 		return nlohmann::json();
 	}
+}
+
+inline nlohmann::json parse_redis_item(const std::vector<uint8_t> &raw_item)
+{
+	size_t item_length = 0;
+	return parse_redis_item(raw_item, item_length);
 }
 
 inline nlohmann::json parse_redis_command(const std::vector<uint8_t> &command)
