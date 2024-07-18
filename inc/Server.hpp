@@ -24,6 +24,7 @@
 #include <boost/program_options.hpp>
 
 #include "Clients.hpp"
+#include "Event.hpp"
 #include "ServerState.hpp"
 #include "Replica.hpp"
 

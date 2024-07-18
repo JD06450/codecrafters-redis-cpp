@@ -5,9 +5,12 @@
 #include <type_traits>
 #include <concepts>
 #include <cstdint>
+#include <list>
 #include <memory>
 #include <random>
 #include <arpa/inet.h>
+
+#include "Event.hpp"
 
 class ServerState
 {
@@ -28,7 +31,9 @@ public:
 	~ServerState();
 	
 	uint16_t port;
+	std::list<std::shared_ptr<Event>> events;
 	bool replica_mode;
+
 	int master_fd;
 	struct sockaddr_in replica_addr;
 	std::string replication_id;

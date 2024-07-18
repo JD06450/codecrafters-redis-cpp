@@ -1,5 +1,11 @@
 #include "Clients.hpp"
 
+#include <functional>
+
+#include "Commands.hpp"
+#include "Event.hpp"
+#include "ServerState.hpp"
+
 #include <nlohmann/json.hpp>
 
 namespace json = nlohmann;
@@ -27,6 +33,16 @@ void print_blob(const std::vector<uint8_t> &blob)
 	std::cout << std::endl;
 }
 
+void command_event_handler(const json::json command, std::shared_ptr<Event> ev)
+{
+	std::cout << "Command:  " << json::to_string(command) << "\n\n";
+	json::json response = run_command(command, ev);
+	std::cout << "Response: " << json::to_string(response) << "\n\n";
+	std::vector<uint8_t> serial_response = from_json(response);
+	
+	send(ev->context.client.fd, (const char *) serial_response.data(), serial_response.size(), 0);
+}
+
 bool handle_client_read(const client_connection& client)
 {
 	std::vector<uint8_t> full_command;
@@ -41,10 +57,27 @@ bool handle_client_read(const client_connection& client)
 		return false;
 	}
 
+	print_command(full_command);
+
+	json::json cmds = parse_redis_commands(full_command);
+	std::shared_ptr<ServerState> state = ServerState::get_state();
+
+	for (auto cmd = cmds.begin(); cmd != cmds.end(); ++cmd)
+	{
+		auto ev = std::make_shared<Event>(std::bind_front(command_event_handler, cmd.value()), Context(client));
+		state->events.push_back(ev);
+	}
+
+	return true;
+}
+
+void print_command(const std::vector<uint8_t> &full_command)
+{
 	for (char i : full_command)
 	{
 		if (i == 0) break;
-		switch (i) {
+		switch (i)
+		{
 		case '\\':
 			std::cout << "\\\\";
 			break;
@@ -58,19 +91,6 @@ bool handle_client_read(const client_connection& client)
 			std::cout << i;
 		}
 	}
-
-	json::json cmds = parse_redis_commands(full_command);
-	for (auto cmd = cmds.begin(); cmd != cmds.end(); ++cmd)
-	{
-		std::cout << "Command:  " << json::to_string(cmd.value()) << "\n\n";
-		json::json response = run_command(cmd.value());
-		std::cout << "Response: " << json::to_string(response) << "\n\n";
-		std::vector<uint8_t> serial_response = from_json(response);
-
-		send(client.fd, (const char *) serial_response.data(), serial_response.size(), 0);
-	}
-
-	return true;
 }
 
 std::vector<uint8_t> get_response(const client_connection &conn)

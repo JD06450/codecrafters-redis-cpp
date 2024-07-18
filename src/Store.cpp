@@ -13,7 +13,6 @@ RedisStore::~RedisStore() {}
 
 void RedisStore::check_expiry(const std::string &key)
 {
-	std::lock_guard<std::mutex> g_data_mutex(this->data_mutex);
 	auto it = this->data.find(key);
 	if (it == this->data.end()) return;
 	RedisValue data = it->second;
@@ -28,7 +27,6 @@ bool RedisStore::set_value(const RedisSetOptions &options)
 {
 	this->check_expiry(options.key);
 
-	std::lock_guard<std::mutex> g_data_mutex(this->data_mutex);
 	auto it = this->data.find(options.key);
 	if (options.assign_only && it == this->data.end()) return false;
 	if (options.insert_only && it != this->data.end()) return false;

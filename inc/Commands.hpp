@@ -4,24 +4,25 @@
 
 #include <nlohmann/json.hpp>
 
+#include "Event.hpp"
 #include "Parser.hpp"
 #include "ServerState.hpp"
 #include "Store.hpp"
 
-nlohmann::json run_command(const nlohmann::json& command);
+nlohmann::json run_command(const nlohmann::json& command, std::shared_ptr<Event> event);
 
-nlohmann::json PING(const nlohmann::json& args);
+nlohmann::json PING(const nlohmann::json& args, std::shared_ptr<Event> event);
 
-nlohmann::json ECHO(const nlohmann::json& args);
+nlohmann::json ECHO(const nlohmann::json& args, std::shared_ptr<Event> event);
 
-nlohmann::json GET(const nlohmann::json &args);
+nlohmann::json GET(const nlohmann::json &args, std::shared_ptr<Event> event);
 
-nlohmann::json SET(const nlohmann::json &args);
+nlohmann::json SET(const nlohmann::json &args, std::shared_ptr<Event> event);
 
-nlohmann::json INFO(const nlohmann::json &args);
+nlohmann::json INFO(const nlohmann::json &args, std::shared_ptr<Event> event);
 
-nlohmann::json REPLCONF(const nlohmann::json &args);
+nlohmann::json REPLCONF(const nlohmann::json &args, std::shared_ptr<Event> event);
 
-nlohmann::json PSYNC(const nlohmann::json &args);
+nlohmann::json PSYNC(const nlohmann::json &args, std::shared_ptr<Event> event);
 
 #endif

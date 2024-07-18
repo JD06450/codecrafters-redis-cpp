@@ -7,7 +7,6 @@
 #include <unordered_map>
 #include <vector>
 #include <chrono>
-#include <mutex>
 #include <memory>
 #include <optional>
 
@@ -32,7 +31,6 @@ struct RedisSetOptions
 class RedisStore
 {
 private:
-	std::mutex data_mutex;
 	std::unordered_map<std::string, RedisValue> data;
 
 	RedisStore() {};

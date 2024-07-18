@@ -10,7 +10,6 @@
 #include <sys/poll.h>
 #include <arpa/inet.h>
 
-#include "Commands.hpp"
 #include "Parser.hpp"
 #include "Serializer.hpp"
 
@@ -30,6 +29,8 @@ bool socket_ready(int fd, int timeout);
  * @return True if the socket should be kept alive, False if the socket should be closed
  */
 bool handle_client_read(const client_connection &client);
+
+void print_command(const std::vector<uint8_t> &full_command);
 
 std::vector<uint8_t> get_response(const client_connection &conn);
 

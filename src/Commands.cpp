@@ -15,7 +15,7 @@
 
 namespace json = nlohmann;
 
-static const std::map<std::string, std::function<json::json(const json::json&)>> commands =
+static const std::map<std::string, std::function<json::json(const json::json&, std::shared_ptr<Event>)>> commands =
 {
 	{"PING", PING},
 	{"ECHO", ECHO},
@@ -26,7 +26,7 @@ static const std::map<std::string, std::function<json::json(const json::json&)>>
 	{"PSYNC", PSYNC}
 };
 
-json::json run_command(const json::json& command)
+json::json run_command(const json::json& command, std::shared_ptr<Event> ev)
 {
 	if (!blob_is_string_like(command.at(0)))
 	{
@@ -41,20 +41,23 @@ json::json run_command(const json::json& command)
 	if ((it = commands.find(cmd_string)) != commands.end())
 	{
 		json::json args(command.cbegin() + 1, command.cend());
-		return it->second(args);
+		return it->second(args, ev);
 	}
 
 	std::cerr << "Command Not Found!\n";
 	return json::json();
 }
 
-json::json PING(const json::json &_args)
+json::json PING(const json::json &_args, std::shared_ptr<Event> _ev)
 {
+	(void) _args;
+	(void) _ev;
 	return json::json("PONG");
 }
 
-nlohmann::json ECHO(const nlohmann::json &args)
+json::json ECHO(const nlohmann::json &args, std::shared_ptr<Event> _ev)
 {
+	(void) _ev;
 	if (!args.is_array())
 	{
 		std::cerr << "ECHO command expects an array as input.\n";
@@ -82,8 +85,9 @@ nlohmann::json ECHO(const nlohmann::json &args)
 	return json::json::binary(response);
 }
 
-json::json GET(const json::json &args)
+json::json GET(const json::json &args, std::shared_ptr<Event> _ev)
 {
+	(void) _ev;
 	if (!args.is_array())
 	{
 		std::cerr << "GET command expects an array as input.\n";
@@ -112,8 +116,9 @@ bool parse_expiry_time(RedisSetOptions &options, const json::json &args, json::d
 	return true;
 }
 
-json::json SET(const json::json &args)
+json::json SET(const json::json &args, std::shared_ptr<Event> _ev)
 {
+	(void) _ev;
 	if (!args.is_array())
 	{
 		std::cerr << "SET command expects an array as input.\n";
@@ -163,8 +168,9 @@ inline void append_blob(json::json &json_blob, const std::string &string_to_appe
 	json_blob = json::json::binary(a);
 }
 
-json::json INFO(const json::json &args)
+json::json INFO(const json::json &args, std::shared_ptr<Event> _ev)
 {
+	(void) _ev;
 	json::json return_string = json::json::binary({});
 
 	if (args.size() == 0)
@@ -186,12 +192,14 @@ json::json INFO(const json::json &args)
 	return return_string;
 }
 
-json::json REPLCONF(const json::json &args)
+json::json REPLCONF(const json::json &_args, std::shared_ptr<Event> _ev)
 {
+	(void) _args;
+	(void) _ev;
 	return json::json("OK");
 }
 
-json::json PSYNC(const json::json &args)
+json::json PSYNC(const json::json &args, std::shared_ptr<Event> ev)
 {
 	std::shared_ptr<ServerState> state = ServerState::get_state();
 	std::ostringstream response;

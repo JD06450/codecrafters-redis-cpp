@@ -24,6 +24,7 @@ std::optional<client_connection> accept_connection(int server_fd)
 	// 	return;
 	// }
 	
+	std::cout << "Client connected\n";
 	return client;
 }
 
@@ -54,6 +55,40 @@ void close_dead_sockets(std::list<client_connection> &socket_list, const std::ve
 		close(idx->fd);
 		socket_list.erase(idx);
 	}
+}
+
+void process_events()
+{
+	std::list<std::shared_ptr<Event>> & events = ServerState::get_state()->events;
+	std::list<std::shared_ptr<Event>> events_to_fire;
+
+	for (auto ev_iter = events.begin(); ev_iter != events.end();)
+	{
+		std::shared_ptr<Event> ev = *ev_iter;
+		if (!ev->timeout_function(ev))
+		{
+			++ev_iter;
+			continue;
+		}
+		
+		events_to_fire.push_back(ev);
+		ev_iter = events.erase(ev_iter);
+	}
+
+	for (auto ev : events_to_fire) ev->action(ev);
+}
+
+int create_socket_list(fd_set &connection_set, int &server_fd, std::__cxx11::list<client_connection> &connections)
+{
+	int max_fd = server_fd;
+	FD_ZERO(&connection_set);
+	FD_SET(server_fd, &connection_set);
+	for (auto client : connections)
+	{
+		max_fd = std::max(max_fd, client.fd);
+		FD_SET(client.fd, &connection_set);
+	}
+	return max_fd;
 }
 
 int main(int argc, char **argv) {
@@ -142,53 +177,27 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
-	client_connection initial_client;
-	
-	// Listening for our first client to start
-	{
-		socklen_t initial_client_addr_len = sizeof(initial_client.addr);
-		std::cout << "Waiting for a client to connect...\n";	
-		initial_client.fd = accept(server_fd, (struct sockaddr *) &initial_client.addr, &initial_client_addr_len);
-	}
-
-
-	if (initial_client.fd < 0)
-	{
-		std::cerr << "Failed to get client socket\n";
-		return 1;
-	}
-	std::cout << "Client connected\n";
-
 	std::list<client_connection> connections;
 	std::vector<std::list<client_connection>::iterator> sockets_to_prune;
-	fd_set connection_set;
 
-	connections.push_back(initial_client);
-
-	while (connections.size() > 0)
+	while (true)
 	{
-		int max_fd = 0;
-
+		process_events();
 		close_dead_sockets(connections, sockets_to_prune);
 		sockets_to_prune.clear();
-		// Create list of file descriptors to check
-		FD_ZERO(&connection_set);
-		FD_SET(server_fd, &connection_set);
-		for (auto client : connections)
-		{
-			max_fd = std::max(max_fd, client.fd);
-			FD_SET(client.fd, &connection_set);
-		}
 
+		fd_set connection_set;
+		int max_fd = create_socket_list(connection_set, server_fd, connections);
+		
 		struct timeval timeout;
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 1;
 
 		// Check the descriptors for activity
-		int a = select(max_fd + 1, &connection_set, NULL, NULL, &timeout);
-
+		if (!select(max_fd + 1, &connection_set, NULL, NULL, &timeout)) continue;
 		if (FD_ISSET(server_fd, &connection_set)) accept_incoming_connections(server_fd, connections);
 
+		// I know I can just iterate over the fd_set, but this is easier and I just don't care.
 		for (auto client = connections.begin(); client != connections.end(); ++client)
 		{
 			if (!FD_ISSET(client->fd, &connection_set)) continue;
