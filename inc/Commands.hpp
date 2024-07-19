@@ -2,12 +2,9 @@
 #ifndef _BUILD_YOUR_OWN_REDIS_COMMANDS_
 #define _BUILD_YOUR_OWN_REDIS_COMMANDS_
 
-#include <nlohmann/json.hpp>
-
 #include "Event.hpp"
-#include "Parser.hpp"
-#include "ServerState.hpp"
-#include "Store.hpp"
+
+#include <nlohmann/json.hpp>
 
 nlohmann::json run_command(const nlohmann::json& command, std::shared_ptr<Event> event);
 

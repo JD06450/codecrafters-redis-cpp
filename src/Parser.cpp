@@ -1,6 +1,8 @@
-#include <algorithm>
-
 #include "Parser.hpp"
+
+#include <algorithm>
+#include <iostream>
+
 namespace json = nlohmann;
 
 json::json parse_redis_array(const std::vector<uint8_t> &raw_array, size_t &item_length)

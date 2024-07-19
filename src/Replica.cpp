@@ -1,11 +1,17 @@
 #include "Replica.hpp"
 
+#include <iostream>
+#include <memory>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
-#include <iostream>
-#include <memory>
+
+#include "Clients.hpp"
+#include "Parser.hpp"
+#include "Serializer.hpp"
+#include "ServerState.hpp"
+
 #include <nlohmann/json.hpp>
 
 namespace json = nlohmann;

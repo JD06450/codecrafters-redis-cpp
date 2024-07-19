@@ -2,16 +2,9 @@
 #ifndef _BUILD_YOUR_OWN_REDIS_CLIENTS_
 #define _BUILD_YOUR_OWN_REDIS_CLIENTS_
 
-#include <iostream>
 #include <array>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/poll.h>
-#include <arpa/inet.h>
-
-#include "Parser.hpp"
-#include "Serializer.hpp"
+#include <cstdint>
+#include <vector>
 
 struct client_connection
 {

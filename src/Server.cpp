@@ -10,7 +10,6 @@ std::optional<client_connection> accept_connection(int server_fd)
 	client_connection client;
 	socklen_t addr_size = sizeof(client.addr);
 	client.fd = accept(server_fd, (sockaddr *)&client.addr, &addr_size);
-	// int one = 1;
 
 	if (client.fd < 0)
 	{
@@ -18,12 +17,6 @@ std::optional<client_connection> accept_connection(int server_fd)
 		return std::nullopt;
 	}
 
-	// if (setsockopt(client.fd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)) < 0)
-	// {
-	// 	std::cerr << "Failed to set socket option";
-	// 	return;
-	// }
-	
 	std::cout << "Client connected\n";
 	return client;
 }

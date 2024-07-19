@@ -3,7 +3,6 @@
 #define _BUILD_YOUR_OWN_REDIS_EVENT_
 
 #include <functional>
-#include <optional>
 #include <memory>
 
 #include "Clients.hpp"

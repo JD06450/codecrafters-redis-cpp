@@ -2,12 +2,12 @@
 #ifndef _BUILD_YOUR_OWN_REDIS_STATE_
 #define _BUILD_YOUR_OWN_REDIS_STATE_
 
-#include <type_traits>
 #include <concepts>
 #include <cstdint>
 #include <list>
 #include <memory>
 #include <random>
+#include <type_traits>
 #include <arpa/inet.h>
 
 #include "Event.hpp"
