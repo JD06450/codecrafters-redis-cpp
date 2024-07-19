@@ -5,6 +5,7 @@
 #include <array>
 #include <cstdint>
 #include <vector>
+#include <arpa/inet.h>
 
 struct client_connection
 {

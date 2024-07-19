@@ -5,7 +5,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/poll.h>
-#include <arpa/inet.h>
 
 #include "Commands.hpp"
 #include "Event.hpp"
